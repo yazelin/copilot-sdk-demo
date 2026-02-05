@@ -41,15 +41,15 @@ try {
   console.log("   ❌ 預期應該報錯但沒有\n");
 } catch (error) {
   const errorMsg = error.message.toLowerCase();
-  if (errorMsg.includes("invalid") || errorMsg.includes("model") || errorMsg.includes("not found")) {
+  // Check for model-related errors: "not found", "entity", "invalid", etc.
+  if (errorMsg.includes("not found") || errorMsg.includes("entity") || errorMsg.includes("invalid") || errorMsg.includes("model")) {
     console.log("   ✅ CLI 正確拒絕無效的 model");
-    console.log("   錯誤訊息:", error.message.slice(0, 100));
+    console.log("   錯誤訊息:", error.message.slice(0, 150));
     test1Passed = true;
   } else {
-    console.log("   ⚠️  有錯誤但不確定是否因為 model 參數");
-    console.log("   錯誤:", error.message.slice(0, 100));
-    // 還是算通過，因為有傳遞參數才會有錯誤
-    test1Passed = true;
+    console.log("   ❌ 錯誤訊息不符預期");
+    console.log("   錯誤:", error.message.slice(0, 150));
+    test1Passed = false;
   }
   await invalidClient.forceStop().catch(() => {});
 }
