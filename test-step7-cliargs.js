@@ -11,7 +11,7 @@ console.log("=== 步驟 7: CLI Args 測試 ===\n");
 // 測試 1: 使用無效的 model 名稱，驗證 --model 參數有正確傳遞
 console.log("測試 1: 驗證 --model 參數傳遞");
 console.log("   使用無效的 model 名稱 'invalid-model-12345'");
-console.log("   如果 CLI 報錯提到這個名稱，表示參數有正確傳遞\n");
+console.log("   若出現 'not found' 錯誤，表示 CLI 嘗試使用該 model（參數有傳遞）\n");
 
 const invalidClient = new CopilotClient({
   cliPath: "gemini",
