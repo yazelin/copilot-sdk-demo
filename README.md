@@ -381,6 +381,40 @@ const client = new CopilotClient({
 
 > 追蹤官方合併進度：[PR #379](https://github.com/github/copilot-sdk/pull/379)
 
+## 測試套件
+
+本專案包含完整的 SDK + ACP 功能測試，可驗證 Gemini CLI 整合是否正常運作：
+
+```bash
+# 執行單一測試
+node test-step1-connection.js
+
+# 執行所有測試
+for f in test-step*.js; do echo "=== $f ===" && node "$f" && echo; done
+```
+
+### 測試清單
+
+| 測試檔案 | 功能 | 說明 |
+|----------|------|------|
+| `test-step1-connection.js` | 連線測試 | 驗證 Client 與 Gemini CLI 連線 |
+| `test-step2-session.js` | Session 建立 | 建立會話並發送訊息 |
+| `test-step3-toolcalls.js` | Tool 呼叫 | 單一工具執行 |
+| `test-step4-multi-tools.js` | 多工具呼叫 | 多個工具連續執行 |
+| `test-step5-errors.js` | 錯誤處理 | 錯誤訊息正確傳遞 |
+| `test-step6-multiturn.js` | 多輪對話 | 上下文記憶測試 |
+| `test-step7-cliargs.js` | CLI 參數 | `--model`, `--approval-mode` 等參數 |
+| `test-step8-reasoning.js` | 思考過程 | `assistant.reasoning_delta` 事件 |
+| `test-step9-abort.js` | 中斷請求 | `session.abort()` (Gemini 不支援) |
+| `test-step10-permission.js` | 權限請求 | `permission.request` 事件 |
+| `test-step11-workdir.js` | 工作目錄 | `workingDirectory` 參數傳遞 |
+| `test-step12-multi-session.js` | 多 Session | 同時多個獨立會話 |
+| `test-step13-mcp.js` | MCP Servers | `mcpServers` 參數傳遞 |
+
+### 測試結果
+
+所有測試皆已通過 ✅ (部分功能 Gemini CLI 不支援，但 SDK 正確處理)
+
 ## 系統需求
 
 - Node.js 18+
