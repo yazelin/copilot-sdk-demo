@@ -72,16 +72,24 @@ const validClient = new CopilotClient({
 
 let test2Passed = false;
 
-async function waitForIdle(session, timeout = 30000) {
+async function waitForIdleOrError(session, timeout = 60000) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("等待 idle 超時")), timeout);
-    const handler = (event) => {
+    let unsubscribe;
+    const timer = setTimeout(() => {
+      if (unsubscribe) unsubscribe();
+      reject(new Error("等待 idle 超時"));
+    }, timeout);
+    unsubscribe = session.on((event) => {
       if (event.type === "session.idle") {
         clearTimeout(timer);
+        if (unsubscribe) unsubscribe();
         resolve();
+      } else if (event.type === "session.error" || event.type === "error") {
+        clearTimeout(timer);
+        if (unsubscribe) unsubscribe();
+        reject(new Error(event.data?.message || "Session error"));
       }
-    };
-    session.on(handler);
+    });
   });
 }
 
@@ -103,7 +111,7 @@ try {
     }
   });
 
-  const idlePromise = waitForIdle(session);
+  const idlePromise = waitForIdleOrError(session);
   await session.send({ prompt: "回答 2+2=? 只要數字" });
   await idlePromise;
 
