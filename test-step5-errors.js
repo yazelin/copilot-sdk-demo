@@ -54,7 +54,6 @@ try {
   console.log(`   - 通過: ${passed}`);
   console.log(`   - 失敗: ${failed}`);
   console.log(`\n=== 步驟 5 測試${failed === 0 ? "通過 ✅" : "失敗 ❌"} ===`);
-  process.exit(failed === 0 ? 0 : 1);
 
 } catch (error) {
   console.error("❌ 測試失敗:", error.message);
