@@ -13,7 +13,7 @@ const client = new CopilotClient({
   cliPath: "gemini",
   cliArgs: [
     "--experimental-acp",
-    "--model", "gemini-2.0-flash",  // 使用特定模型
+    "--model", "gemini-2.5-flash",  // 使用特定模型
     "--approval-mode", "auto_edit", // 自動批准編輯
   ],
   protocol: "acp",
@@ -36,8 +36,8 @@ async function waitForIdle(session, timeout = 60000) {
 try {
   await client.start();
   console.log("✅ Client 啟動成功 (使用 CLI args)");
-  console.log("   - --model gemini-2.0-flash");
-  console.log("   - --approval-mode auto-edit");
+  console.log("   - --model gemini-2.5-flash");
+  console.log("   - --approval-mode auto_edit");
   console.log("");
 
   const session = await client.createSession({
@@ -53,20 +53,23 @@ try {
     }
   });
 
-  // 發送簡單訊息
-  console.log("發送: 你好！請用一句話介紹自己。");
+  // 發送訊息詢問模型版本
+  console.log("發送: 你是什麼模型？只需回答模型名稱，例如 gemini-2.5-flash。");
 
   const idlePromise = waitForIdle(session);
-  await session.send({ prompt: "你好！請用一句話介紹自己。" });
+  await session.send({ prompt: "你是什麼模型？只需回答模型名稱，例如 gemini-2.5-flash。" });
   await idlePromise;
 
   console.log("\n回應:", responseText.trim().slice(0, 150));
 
-  // 驗證 - 如果能成功回應，CLI args 就正確傳遞了
-  if (responseText.length > 0) {
-    console.log("\n✅ CLI Args 正確傳遞 - 使用指定的模型成功回應");
+  // 驗證 - 檢查回應是否包含 2.5
+  const hasCorrectModel = responseText.toLowerCase().includes("2.5");
+  if (hasCorrectModel) {
+    console.log("\n✅ CLI Args 正確傳遞 - 確認使用 gemini-2.5-flash 模型");
+  } else if (responseText.length > 0) {
+    console.log("\n⚠️  收到回應但無法確認模型版本");
   } else {
-    console.log("\n⚠️  沒有收到回應");
+    console.log("\n❌ 沒有收到回應");
   }
 
   await client.stop();
