@@ -28,18 +28,24 @@ gemini --version
 
 ## 安裝專案
 
-### 步驟 1: Clone 並安裝 ACP 版 Copilot SDK
+### 為什麼需要 npm link？
 
-由於官方 `@github/copilot-sdk` 尚未支援 ACP 協議，需要先安裝支援 ACP 的 fork 版本：
+官方 `@github/copilot-sdk` 尚未支援 ACP 協議，我們需要使用 fork 版本。但由於 SDK 位於 monorepo 的子目錄 (`nodejs/`)，npm 無法直接從 GitHub 安裝，因此使用 `npm link` 建立本地符號連結。
+
+### 步驟 1: Clone 並安裝 ACP 版 Copilot SDK
 
 ```bash
 # Clone SDK (ACP 版本)
 git clone https://github.com/yazelin/copilot-sdk.git
 cd copilot-sdk/nodejs
 
-# 安裝 SDK 依賴並建立全域連結
+# 安裝依賴
 npm install
+
+# 編譯 TypeScript
 npm run build
+
+# 建立全域符號連結
 npm link
 
 cd ../..
@@ -58,7 +64,7 @@ git checkout gemini
 # 安裝依賴
 npm install
 
-# 連結 ACP 版 SDK
+# 連結到本地 ACP 版 SDK (取代 npm registry 的官方版)
 npm link @github/copilot-sdk
 ```
 
@@ -66,9 +72,20 @@ npm link @github/copilot-sdk
 
 ```bash
 npm ls @github/copilot-sdk
-# 應該顯示:
-# copilot-demo@1.0.0
-# └── @github/copilot-sdk@0.1.8 -> ./../copilot-sdk/nodejs
+```
+
+**正確結果 (有箭頭 `->` 表示符號連結)：**
+```
+copilot-demo@1.0.0
+└── @github/copilot-sdk@0.1.8 -> ./../copilot-sdk/nodejs
+                                 ↑ 這個箭頭表示連結到本地 fork 版本
+```
+
+**錯誤結果 (沒有箭頭，使用官方版)：**
+```
+copilot-demo@1.0.0
+└── @github/copilot-sdk@0.1.19
+                        ↑ 沒有箭頭，是從 npm registry 安裝的官方版，不支援 ACP
 ```
 
 ## 使用方式
@@ -155,6 +172,12 @@ which gemini
 # 應該顯示路徑，如 /usr/local/bin/gemini
 ```
 
+如果找不到，重新安裝：
+
+```bash
+npm install -g @google/gemini-cli
+```
+
 ### 認證問題
 
 重新登入 Gemini：
@@ -164,31 +187,83 @@ gemini auth logout
 gemini
 ```
 
-### SDK 連結問題
+### SDK 連結問題 (npm link 詳解)
 
-確認使用的是 ACP 版 SDK：
+#### npm link 運作原理
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  步驟 1: npm link (在 SDK 目錄執行)                          │
+│                                                              │
+│  copilot-sdk/nodejs/                                         │
+│       │                                                      │
+│       └──► 建立全域符號連結                                   │
+│            {global}/node_modules/@github/copilot-sdk         │
+│                          ↓                                   │
+│                    指向這個目錄                               │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  步驟 2: npm link @github/copilot-sdk (在 Demo 目錄執行)     │
+│                                                              │
+│  copilot-sdk-demo/node_modules/@github/copilot-sdk          │
+│       │                                                      │
+│       └──► 連結到全域符號連結                                 │
+│            → {global}/node_modules/@github/copilot-sdk       │
+│            → copilot-sdk/nodejs/  (最終指向)                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 確認連結狀態
 
 ```bash
 npm ls @github/copilot-sdk
 ```
 
-如果沒有顯示連結到 `copilot-sdk/nodejs`，重新連結：
+#### 常見問題與解決方案
+
+| 問題 | 原因 | 解決方案 |
+|------|------|----------|
+| `npm link` 失敗 | 沒有先編譯 | 先執行 `npm install` 和 `npm run build` |
+| 連結後還是用官方版 | `npm install` 會覆蓋連結 | 每次 `npm install` 後要重新執行 `npm link @github/copilot-sdk` |
+| `protocol` 選項無效 | 連結到官方版 | 確認 `npm ls` 有顯示 `->` 箭頭 |
+| 找不到模組 | SDK 沒有編譯 | 在 SDK 目錄執行 `npm run build` |
+
+#### 重新建立連結
+
+如果遇到問題，完整重新連結：
 
 ```bash
-# 在 copilot-sdk/nodejs 目錄
+# 1. 在 SDK 目錄重新建立全域連結
+cd copilot-sdk/nodejs
+npm install
+npm run build
 npm link
 
-# 在 demo 專案目錄
+# 2. 在 Demo 目錄重新連結
+cd ../../copilot-sdk-demo
 npm link @github/copilot-sdk
+
+# 3. 驗證
+npm ls @github/copilot-sdk
+# 確認有 -> 箭頭指向本地路徑
 ```
 
 ### "protocol" 選項無效
 
-這表示使用的是官方版 SDK，而非 ACP fork 版本。請確認：
+錯誤訊息類似：
+```
+TypeError: "protocol" is not a valid option
+```
 
-1. 已 clone yazelin/copilot-sdk
-2. 已執行 `npm link` 建立連結
-3. 已在 demo 專案執行 `npm link @github/copilot-sdk`
+這表示使用的是官方版 SDK (不支援 ACP)，而非 fork 版本。
+
+**解決方案：**
+
+1. 確認已 clone `yazelin/copilot-sdk`
+2. 確認已在 SDK 目錄執行 `npm link`
+3. 確認已在 Demo 目錄執行 `npm link @github/copilot-sdk`
+4. 用 `npm ls @github/copilot-sdk` 驗證有 `->` 箭頭
 
 ## ACP 版 SDK 新增功能
 
@@ -209,6 +284,8 @@ npm link @github/copilot-sdk
 - Node.js 18+
 - Gemini CLI (已認證)
 - 網路連線
+
+> ⚠️ 目前只在 **Ubuntu** 測試過，Windows / macOS 尚未測試，歡迎回報問題。
 
 ## 相關連結
 
