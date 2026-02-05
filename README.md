@@ -315,6 +315,70 @@ TypeError: "protocol" is not a valid option
 | Go | ❌ 未實作 |
 | .NET | ❌ 未實作 |
 
+### 可透過 CLI 參數使用的功能
+
+以下功能雖然 ACP 協議沒有定義，但可以透過 Gemini CLI 的命令列參數使用：
+
+| 功能 | 官方 SDK | Gemini CLI 參數 | 使用方式 |
+|------|----------|-----------------|----------|
+| 選擇模型 | `model` | `--model` | `cliArgs: ["--model", "gemini-2.5-flash"]` |
+| 恢復 Session | `resumeSession()` | `--resume` | `cliArgs: ["--resume", "latest"]` |
+| 自動批准模式 | - | `--approval-mode` | `cliArgs: ["--approval-mode", "auto_edit"]` |
+| YOLO 模式 | - | `--yolo` | `cliArgs: ["--yolo"]` |
+| 允許的工具 | `availableTools` | `--allowed-tools` | `cliArgs: ["--allowed-tools", "Read", "Write"]` |
+| 沙箱模式 | - | `--sandbox` | `cliArgs: ["--sandbox"]` |
+| 額外目錄 | - | `--include-directories` | `cliArgs: ["--include-directories", "/path"]` |
+| MCP Servers | - | `--allowed-mcp-server-names` | `cliArgs: ["--allowed-mcp-server-names", "server1"]` |
+
+#### 範例：使用多個 CLI 參數
+
+```javascript
+const client = new CopilotClient({
+  cliPath: "gemini",
+  cliArgs: [
+    "--experimental-acp",
+    "--model", "gemini-2.5-flash",
+    "--approval-mode", "auto_edit",
+    "--allowed-tools", "Read", "Write", "Bash"
+  ],
+  protocol: "acp"
+});
+```
+
+#### MCP Servers 設定
+
+MCP Servers 需要先用 Gemini CLI 預先設定，然後在 ACP 模式中過濾使用：
+
+```bash
+# 1. 先設定 MCP Server
+gemini mcp add my-server npx -y @anthropic/my-mcp-server
+
+# 2. 查看已設定的 servers
+gemini mcp list
+
+# 3. 在 ACP 模式中指定要使用的 servers
+```
+
+```javascript
+const client = new CopilotClient({
+  cliPath: "gemini",
+  cliArgs: [
+    "--experimental-acp",
+    "--allowed-mcp-server-names", "my-server"
+  ],
+  protocol: "acp"
+});
+```
+
+#### Approval Mode 選項
+
+| 模式 | 說明 |
+|------|------|
+| `default` | 預設，每次操作都詢問 |
+| `auto_edit` | 自動批准編輯操作 |
+| `yolo` | 自動批准所有操作 (危險!) |
+| `plan` | 唯讀模式 |
+
 > 追蹤官方合併進度：[PR #379](https://github.com/github/copilot-sdk/pull/379)
 
 ## 系統需求
