@@ -410,6 +410,9 @@ for f in test-step*.js; do echo "=== $f ===" && node "$f" && echo; done
 | `test-step11-workdir.js` | 工作目錄 | `workingDirectory` 參數傳遞 |
 | `test-step12-multi-session.js` | 多 Session | 同時多個獨立會話 |
 | `test-step13-mcp.js` | MCP Servers | `mcpServers` 參數傳遞 |
+| `test-step14-sendandwait.js` | sendAndWait | 便利方法自動等待 idle |
+| `test-step15-destroy.js` | Session Destroy | 明確銷毀 session |
+| `test-step16-typed-events.js` | Typed Events | `on("event.type", handler)` 語法 |
 
 ### 測試結果
 
