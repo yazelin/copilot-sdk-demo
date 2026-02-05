@@ -80,6 +80,7 @@ try {
 
   await client.stop();
   console.log("\n=== 步驟 6 測試完成 ===");
+  process.exit(0);
 
 } catch (error) {
   console.error("❌ 測試失敗:", error.message);

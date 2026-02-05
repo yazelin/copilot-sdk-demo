@@ -36,6 +36,7 @@ try {
   console.log("   ✅ 停止成功\n");
 
   console.log("=== 步驟 1 測試通過 ✅ ===");
+  process.exit(0);
 
 } catch (error) {
   console.error("❌ 測試失敗:", error.message);
