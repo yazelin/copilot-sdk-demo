@@ -265,17 +265,55 @@ TypeError: "protocol" is not a valid option
 3. 確認已在 Demo 目錄執行 `npm link @github/copilot-sdk`
 4. 用 `npm ls @github/copilot-sdk` 驗證有 `->` 箭頭
 
-## ACP 版 SDK 新增功能
+## ACP 協議支援狀態
 
-此 fork 版本相較官方版新增了：
+此 fork 版本實作了 ACP (Agent Client Protocol) 的部分功能。以下是完整的支援狀態：
 
-| 功能 | 說明 |
+### Client → Agent (SDK 發送給 Gemini)
+
+| ACP Method | 功能 | 狀態 |
+|------------|------|------|
+| `initialize` | 版本協商、能力交換 | ✅ 已實作 (via `ping`) |
+| `session/new` | 建立會話 | ✅ 已實作 |
+| `session/prompt` | 發送訊息 | ✅ 已實作 |
+| `session/cancel` | 取消操作 | ⚠️ 部分 (有 `session/abort`) |
+| `authenticate` | 認證 | ❌ 未實作 |
+| `session/load` | 載入現有會話 | ❌ 未實作 |
+| `session/set_mode` | 切換模式 | ❌ 未實作 |
+
+### Agent → Client (Gemini 請求 SDK)
+
+| ACP Method | 功能 | 狀態 |
+|------------|------|------|
+| `session/request_permission` | 權限請求 | ✅ 已實作 |
+| `fs/read_text_file` | 讀取檔案 | ❌ 未實作 |
+| `fs/write_text_file` | 寫入檔案 | ❌ 未實作 |
+| `terminal/create` | 建立終端機 | ❌ 未實作 |
+| `terminal/output` | 取得終端輸出 | ❌ 未實作 |
+| `terminal/release` | 釋放終端機 | ❌ 未實作 |
+| `terminal/wait_for_exit` | 等待終端完成 | ❌ 未實作 |
+| `terminal/kill` | 終止終端 | ❌ 未實作 |
+
+### Notifications (Gemini → SDK)
+
+| ACP Notification | 功能 | 狀態 |
+|------------------|------|------|
+| `session/update` - `agent_message_chunk` | 串流文字 | ✅ 已實作 |
+| `session/update` - `agent_thought_chunk` | 串流思考 | ✅ 已實作 |
+| `session/update` - `agent_message` | 完整訊息 | ✅ 已實作 |
+| `session/update` - `end_turn` | 回合結束 | ✅ 已實作 |
+| `session/update` - `error` | 錯誤 | ✅ 已實作 |
+| `session/update` - `tool_call` | 工具呼叫開始 | ✅ 已實作 |
+| `session/update` - `tool_call_update` | 工具呼叫更新 | ✅ 已實作 |
+
+### SDK 語言支援
+
+| 語言 | 狀態 |
 |------|------|
-| `protocol: "acp"` | 啟用 ACP 協議模式 |
-| Gemini CLI 支援 | 完整支援 `gemini --experimental-acp` |
-| Tool calls | 工具呼叫事件 (`tool.execution_start/complete`) |
-| Permission requests | 權限請求處理 |
-| NDJSON transport | ACP 協議的傳輸層實作 |
+| TypeScript/Node.js | ✅ 已實作 |
+| Python | ❌ 未實作 |
+| Go | ❌ 未實作 |
+| .NET | ❌ 未實作 |
 
 > 追蹤官方合併進度：[PR #379](https://github.com/github/copilot-sdk/pull/379)
 
