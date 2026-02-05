@@ -17,7 +17,11 @@ class WebpageAnalyzerAgent {
    */
   async initialize() {
     console.log("🚀 初始化 Copilot 客戶端...");
-    this.client = new CopilotClient();
+    this.client = new CopilotClient({
+      cliPath: "gemini",
+      cliArgs: ["--experimental-acp"],
+      protocol: "acp",
+    });
     await this.client.start();
     console.log("✅ Copilot 客戶端已啟動\n");
   }
@@ -106,12 +110,7 @@ class WebpageAnalyzerAgent {
     
     try {
       // 創建新會話
-      session = await this.client.createSession({
-        model: "gemini-3-pro-preview",
-        cliPath: "gemini",
-        cliArgs: '--experimental-acp',
-        streaming: false
-      });
+      session = await this.client.createSession();
 
       // 使用 Promise 來處理事件回調
       const result = await new Promise((resolve, reject) => {
@@ -119,11 +118,15 @@ class WebpageAnalyzerAgent {
 
         // 註冊事件處理器（必須在 send 之前）
         session.on((event) => {
-          if (event.type === "assistant.message") {
+          if (event.type === "assistant.message_delta") {
+            // 累積串流的 chunk 內容
+            responseContent += event.data.deltaContent || "";
+          } else if (event.type === "assistant.message") {
+            // 完整訊息（如果有的話）
             responseContent = event.data.content || "";
           } else if (event.type === "session.idle") {
             resolve(responseContent);
-          } else if (event.type === "error") {
+          } else if (event.type === "session.error") {
             reject(new Error(event.data?.message || "處理時發生錯誤"));
           }
         });
