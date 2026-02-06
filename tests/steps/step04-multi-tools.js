@@ -3,16 +3,13 @@
  * - 觸發多個 tool 呼叫
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 4: 多重 Tool Calls 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 4: 多重 Tool Calls 測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 try {
   await client.start();
@@ -66,7 +63,7 @@ try {
   if (toolStarts.length >= 2) {
     console.log("\n   ✅ 多重 Tool calls 正常運作");
   } else if (toolStarts.length === 1) {
-    console.log("\n   ⚠️  只觸發 1 個 tool (可能 Gemini 合併處理)");
+    console.log("\n   ⚠️  只觸發 1 個 tool (可能合併處理)");
   } else {
     console.log("\n   ⚠️  沒有收到 tool 事件");
   }

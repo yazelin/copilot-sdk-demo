@@ -2,38 +2,25 @@
  * 步驟 10: Permission Request 測試
  * - 當 Agent 需要執行敏感操作時會請求權限
  * - SDK 處理 session/request_permission
+ *
+ * Provider-specific: 當 provider 沒有 approvalModeFlag 時 SKIP
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
 
-console.log("=== 步驟 10: Permission Request 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: [
-    "--experimental-acp",
-    "--approval-mode", "default",  // 使用預設模式，需要請求權限
-  ],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 10: Permission Request 測試 (${provider.name}) ===\n`);
 
-async function waitForIdle(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    let unsubscribe;
-    const timer = setTimeout(() => {
-      if (unsubscribe) unsubscribe();
-      reject(new Error("等待 idle 超時"));
-    }, timeout);
-    unsubscribe = session.on((event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        resolve();
-      }
-    });
-  });
+// SKIP 如果 provider 不支援 approval mode flag
+if (!provider.capabilities.approvalModeFlag) {
+  console.log(`⏭️  ${provider.name} 不支援 --approval-mode flag，跳過此測試\n`);
+  process.exit(77);
 }
+
+const client = createClient(provider, [
+  provider.capabilities.approvalModeFlag, "default",  // 使用預設模式，需要請求權限
+]);
 
 try {
   await client.start();
@@ -89,7 +76,7 @@ try {
     console.log("   請求詳情:", JSON.stringify(permissionRequests[0], null, 2).slice(0, 200));
   } else {
     console.log("\n   ⚠️  沒有收到 Permission Request");
-    console.log("   （可能因為 approval-mode 設定或 Gemini 直接執行）");
+    console.log("   （可能因為 approval-mode 設定或直接執行）");
   }
 
 

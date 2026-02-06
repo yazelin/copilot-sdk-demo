@@ -383,46 +383,55 @@ const client = new CopilotClient({
 
 ## 測試套件
 
-本專案包含完整的 SDK + ACP 功能測試，可驗證 Gemini CLI 整合是否正常運作：
+本專案包含完整的 SDK + ACP 功能測試，支援 **Gemini CLI** 和 **Claude Code ACP** 兩個 provider：
 
 ```bash
-# 執行單一測試
-node test-step1-connection.js
+# 執行所有測試 (Gemini)
+node tests/run-all.js gemini
 
-# 執行所有測試
-for f in test-step*.js; do echo "=== $f ===" && node "$f" && echo; done
+# 執行所有測試 (Claude Code ACP)
+node tests/run-all.js claude
+
+# 只跑特定 step
+node tests/run-all.js gemini 3
+
+# 使用 npm scripts
+npm test              # 預設跑 Gemini
+npm run test:gemini   # 跑 Gemini
+npm run test:claude   # 跑 Claude
 ```
 
 ### 測試清單
 
-| 測試檔案 | 功能 | 說明 |
-|----------|------|------|
-| `test-step1-connection.js` | 連線測試 | 驗證 Client 與 Gemini CLI 連線 |
-| `test-step2-session.js` | Session 建立 | 建立會話並發送訊息 |
-| `test-step3-toolcalls.js` | Tool 呼叫 | 單一工具執行 |
-| `test-step4-multi-tools.js` | 多工具呼叫 | 多個工具連續執行 |
-| `test-step5-errors.js` | 錯誤處理 | 錯誤訊息正確傳遞 |
-| `test-step6-multiturn.js` | 多輪對話 | 上下文記憶測試 |
-| `test-step7-cliargs.js` | CLI 參數 | `--model`, `--approval-mode` 等參數 |
-| `test-step8-reasoning.js` | 思考過程 | `assistant.reasoning_delta` 事件 |
-| `test-step9-abort.js` | 中斷請求 | `session.abort()` (Gemini 不支援) |
-| `test-step10-permission.js` | 權限請求 | `permission.request` 事件 |
-| `test-step11-workdir.js` | 工作目錄 | `workingDirectory` 參數傳遞 |
-| `test-step12-multi-session.js` | 多 Session | 同時多個獨立會話 |
-| `test-step13-mcp.js` | MCP Servers | `mcpServers` 參數傳遞 |
-| `test-step14-sendandwait.js` | sendAndWait | 便利方法自動等待 idle |
-| `test-step15-destroy.js` | Session Destroy | 明確銷毀 session |
-| `test-step16-typed-events.js` | Typed Events | `on("event.type", handler)` 語法 |
-
-### Claude Code ACP 測試
-
-除了 Gemini CLI，SDK 也通過了 [Claude Code ACP](https://pypi.org/project/claude-code-acp/) 的整合測試：
+所有測試位於 `tests/steps/` 目錄：
 
 | 測試檔案 | 功能 | 說明 |
 |----------|------|------|
-| `test-claude-acp.js` | Claude ACP 整合 | 連線、sendAndWait、多輪對話 |
+| `step01-connection.js` | 連線測試 | 驗證 Client 連線、ping、stop |
+| `step02-session.js` | Session 建立 | 建立會話並發送訊息 |
+| `step03-toolcalls.js` | Tool 呼叫 | 單一工具執行 |
+| `step04-multi-tools.js` | 多工具呼叫 | 多個工具連續執行 |
+| `step05-errors.js` | 錯誤處理 | 錯誤訊息正確傳遞 |
+| `step06-multiturn.js` | 多輪對話 | 上下文記憶測試 |
+| `step07-cliargs.js` | CLI 參數 | `--model`, `--approval-mode` 等 (Gemini only) |
+| `step08-reasoning.js` | 思考過程 | `assistant.reasoning_delta` 事件 |
+| `step09-abort.js` | 中斷請求 | `session.abort()` |
+| `step10-permission.js` | 權限請求 | `permission.request` 事件 (Gemini only) |
+| `step11-workdir.js` | 工作目錄 | `workingDirectory` 參數傳遞 |
+| `step12-multi-session.js` | 多 Session | 同時多個獨立會話 |
+| `step13-mcp.js` | MCP Servers | `mcpServers` 參數傳遞 |
+| `step14-sendandwait.js` | sendAndWait | 便利方法自動等待 idle |
+| `step15-destroy.js` | Session Destroy | 明確銷毀 session |
+| `step16-typed-events.js` | Typed Events | `on("event.type", handler)` 語法 |
 
-> 需要先安裝：`pip install claude-code-acp`，並完成 Claude 登入 (`claude /login`)
+### Provider 支援
+
+| Provider | 安裝 | 預期結果 |
+|----------|------|----------|
+| Gemini CLI | `npm i -g @google/gemini-cli` | 16 PASS |
+| Claude Code ACP | `pip install claude-code-acp` | 14 PASS, 2 SKIP (step07, step10) |
+
+> Claude Code ACP 可用 `CLAUDE_ACP_PATH` 環境變數指定路徑
 
 **Gemini vs Claude ACP 行為差異：**
 

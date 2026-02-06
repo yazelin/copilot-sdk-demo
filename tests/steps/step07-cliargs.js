@@ -2,26 +2,30 @@
  * 步驟 7: CLI Args 測試
  * - 測試透過 cliArgs 傳遞額外參數
  * - 驗證方式：用無效的 model 名稱，確認 CLI 有收到參數並報錯
+ *
+ * Provider-specific: 當 provider 沒有 modelFlag 時 SKIP
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdleOrError } from "../helpers.js";
 
-console.log("=== 步驟 7: CLI Args 測試 ===\n");
+const provider = resolveProvider();
+
+console.log(`=== 步驟 7: CLI Args 測試 (${provider.name}) ===\n`);
+
+// SKIP 如果 provider 不支援 model flag
+if (!provider.capabilities.modelFlag) {
+  console.log(`⏭️  ${provider.name} 不支援 --model flag，跳過此測試\n`);
+  process.exit(77);
+}
 
 // 測試 1: 使用無效的 model 名稱，驗證 --model 參數有正確傳遞
 console.log("測試 1: 驗證 --model 參數傳遞");
 console.log("   使用無效的 model 名稱 'invalid-model-12345'");
 console.log("   若出現 'not found' 錯誤，表示 CLI 嘗試使用該 model（參數有傳遞）\n");
 
-const invalidClient = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: [
-    "--experimental-acp",
-    "--model", "invalid-model-12345",
-  ],
-  protocol: "acp",
-  autoStart: false,
-});
+const invalidClient = createClient(provider, [
+  provider.capabilities.modelFlag, "invalid-model-12345",
+]);
 
 let test1Passed = false;
 
@@ -59,45 +63,18 @@ console.log("");
 // 測試 2: 使用有效的參數組合
 console.log("測試 2: 驗證有效的 CLI args 組合");
 
-const validClient = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: [
-    "--experimental-acp",
-    "--model", "gemini-3-flash-preview",
-    "--approval-mode", "auto_edit",
-  ],
-  protocol: "acp",
-  autoStart: false,
-});
+const validClient = createClient(provider, [
+  provider.capabilities.modelFlag, "gemini-3-flash-preview",
+  provider.capabilities.approvalModeFlag, "auto_edit",
+]);
 
 let test2Passed = false;
-
-async function waitForIdleOrError(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    let unsubscribe;
-    const timer = setTimeout(() => {
-      if (unsubscribe) unsubscribe();
-      reject(new Error("等待 idle 超時"));
-    }, timeout);
-    unsubscribe = session.on((event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        resolve();
-      } else if (event.type === "session.error" || event.type === "error") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        reject(new Error(event.data?.message || "Session error"));
-      }
-    });
-  });
-}
 
 try {
   await validClient.start();
   console.log("   ✅ Client 啟動成功");
-  console.log("      --model gemini-3-flash-preview");
-  console.log("      --approval-mode auto_edit");
+  console.log(`      ${provider.capabilities.modelFlag} gemini-3-flash-preview`);
+  console.log(`      ${provider.capabilities.approvalModeFlag} auto_edit`);
 
   const session = await validClient.createSession({
     workingDirectory: process.cwd(),

@@ -5,16 +5,13 @@
  * - client.stop()
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 1: 基本連線測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 1: 基本連線測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 try {
   // 測試 1: 啟動

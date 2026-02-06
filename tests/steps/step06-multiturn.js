@@ -4,29 +4,13 @@
  * - 確認 context 是否保留
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
 
-console.log("=== 步驟 6: 多輪對話測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 6: 多輪對話測試 (${provider.name}) ===\n`);
 
-async function waitForIdle(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("等待 idle 超時")), timeout);
-    const handler = (event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        resolve();
-      }
-    };
-    session.on(handler);
-  });
-}
+const client = createClient(provider);
 
 try {
   await client.start();

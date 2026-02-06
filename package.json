@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node webpage-analyzer-agent.js https://blog.miniasp.com/post/2025/10/13/How-to-update-7-Zip-program-to-the-latest-version-on-Ubuntu-22045-LTS"
+    "start": "node webpage-analyzer-agent.js https://blog.miniasp.com/post/2025/10/13/How-to-update-7-Zip-program-to-the-latest-version-on-Ubuntu-22045-LTS",
+    "test": "node tests/run-all.js gemini",
+    "test:gemini": "node tests/run-all.js gemini",
+    "test:claude": "node tests/run-all.js claude"
   },
   "keywords": [],
   "author": "Will 保哥",

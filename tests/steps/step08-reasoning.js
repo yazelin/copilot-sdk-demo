@@ -4,33 +4,13 @@
  * - 從 ACP 的 agent_thought_chunk 映射而來
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
 
-console.log("=== 步驟 8: Reasoning Delta 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 8: Reasoning Delta 測試 (${provider.name}) ===\n`);
 
-async function waitForIdle(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    let unsubscribe;
-    const timer = setTimeout(() => {
-      if (unsubscribe) unsubscribe();
-      reject(new Error("等待 idle 超時"));
-    }, timeout);
-    unsubscribe = session.on((event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        resolve();
-      }
-    });
-  });
-}
+const client = createClient(provider);
 
 try {
   await client.start();
@@ -81,7 +61,7 @@ try {
   if (reasoningChunks.length > 0) {
     console.log("\n   ✅ reasoning_delta 有收到！AI 思考過程可見");
   } else {
-    console.log("\n   ⚠️  沒有收到 reasoning_delta（可能 Gemini 不輸出思考過程）");
+    console.log("\n   ⚠️  沒有收到 reasoning_delta（可能不輸出思考過程）");
   }
 
   await client.stop();

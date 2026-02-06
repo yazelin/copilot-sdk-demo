@@ -4,16 +4,13 @@
  * - tool.execution_complete 事件
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 3: Tool Calls 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 3: Tool Calls 測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 try {
   await client.start();
@@ -70,7 +67,7 @@ try {
   if (toolEvents.length > 0) {
     console.log("\n   ✅ Tool calls 正常運作");
   } else {
-    console.log("\n   ⚠️  沒有收到 tool 事件 (Gemini 可能直接回答)");
+    console.log("\n   ⚠️  沒有收到 tool 事件 (可能直接回答)");
   }
 
   await client.stop();

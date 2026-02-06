@@ -4,16 +4,13 @@
  * - 自動等待 session.idle 並回傳最終訊息
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 14: sendAndWait 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 14: sendAndWait 測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 let test1Passed = false;
 
@@ -51,7 +48,7 @@ try {
   } else if (deltaContent.length > 0) {
     console.log("   ⚠️  沒有 assistant.message，但有 delta");
     console.log("   delta:", deltaContent.slice(0, 100));
-    // Gemini 可能不發送完整的 assistant.message
+    // 可能不發送完整的 assistant.message
     test1Passed = deltaContent.includes("5");
   } else {
     console.log("   ❌ 沒有收到任何回應");

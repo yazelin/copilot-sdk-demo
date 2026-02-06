@@ -3,16 +3,13 @@
  * - session.abort() 中斷進行中的請求
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 9: Session Abort 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 9: Session Abort 測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 try {
   await client.start();
@@ -62,7 +59,7 @@ try {
   if (aborted && chunkCount <= 10) {
     console.log("\n   ✅ abort() 可能有效 - 只收到少量 chunk");
   } else if (aborted) {
-    console.log("\n   ⚠️  abort() 已執行但收到較多 chunk - 可能 Gemini 不完全支援");
+    console.log("\n   ⚠️  abort() 已執行但收到較多 chunk - 可能不完全支援");
   } else {
     console.log("\n   ⚠️  未觸發 abort");
   }

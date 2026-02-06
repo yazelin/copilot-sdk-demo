@@ -4,11 +4,13 @@
  * - 讓 agent 讀取特定目錄的檔案來確認
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
-console.log("=== 步驟 11: Working Directory 測試 ===\n");
+const provider = resolveProvider();
+
+console.log(`=== 步驟 11: Working Directory 測試 (${provider.name}) ===\n`);
 
 // 建立測試目錄和檔案
 const testDir = "/tmp/copilot-workdir-test";
@@ -24,29 +26,7 @@ console.log(`✅ 建立測試目錄: ${testDir}`);
 console.log(`   測試檔案: ${testFile}`);
 console.log(`   內容: ${testContent}\n`);
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
-
-async function waitForIdle(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    let unsubscribe;
-    const timer = setTimeout(() => {
-      if (unsubscribe) unsubscribe();
-      reject(new Error("等待 idle 超時"));
-    }, timeout);
-    unsubscribe = session.on((event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        resolve();
-      }
-    });
-  });
-}
+const client = createClient(provider);
 
 let testPassed = false;
 

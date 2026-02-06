@@ -3,16 +3,13 @@
  * - 不支援的方法應該正確拋出錯誤
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 5: 錯誤處理測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 5: 錯誤處理測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 let passed = 0;
 let failed = 0;

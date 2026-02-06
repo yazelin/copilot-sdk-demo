@@ -6,16 +6,13 @@
  * - session.idle 事件
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 2: Session 與對話測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 2: Session 與對話測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 try {
   await client.start();

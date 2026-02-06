@@ -4,16 +4,13 @@
  * - 驗證銷毀後無法再使用
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient } from "../helpers.js";
 
-console.log("=== 步驟 15: Session Destroy 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 15: Session Destroy 測試 (${provider.name}) ===\n`);
+
+const client = createClient(provider);
 
 let test1Passed = false;
 let test2Passed = false;

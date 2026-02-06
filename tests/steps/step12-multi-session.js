@@ -4,33 +4,13 @@
  * - 驗證各 session 獨立運作
  */
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
 
-console.log("=== 步驟 12: Multiple Sessions 測試 ===\n");
+const provider = resolveProvider();
 
-const client = new CopilotClient({
-  cliPath: "gemini",
-  cliArgs: ["--experimental-acp"],
-  protocol: "acp",
-  autoStart: false,
-});
+console.log(`=== 步驟 12: Multiple Sessions 測試 (${provider.name}) ===\n`);
 
-async function waitForIdle(session, timeout = 60000) {
-  return new Promise((resolve, reject) => {
-    let unsubscribe;
-    const timer = setTimeout(() => {
-      if (unsubscribe) unsubscribe();
-      reject(new Error("等待 idle 超時"));
-    }, timeout);
-    unsubscribe = session.on((event) => {
-      if (event.type === "session.idle") {
-        clearTimeout(timer);
-        if (unsubscribe) unsubscribe();
-        resolve();
-      }
-    });
-  });
-}
+const client = createClient(provider);
 
 async function askQuestion(session, name, question) {
   let responseText = "";
