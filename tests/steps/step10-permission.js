@@ -3,7 +3,9 @@
  * - 當 Agent 需要執行敏感操作時會請求權限
  * - SDK 處理 session/request_permission
  *
- * Provider-specific: 當 provider 沒有 approvalModeFlag 時 SKIP
+ * 路徑 A (approvalModeFlag): 用 --approval-mode default（Gemini）
+ * 路徑 B (supportsDefaultPermission): Claude 預設就是 default mode，不需 flag
+ * 都不支援 → SKIP (exit 77)
  */
 
 import { resolveProvider, createClient, waitForIdle } from "../helpers.js";
@@ -12,19 +14,25 @@ const provider = resolveProvider();
 
 console.log(`=== 步驟 10: Permission Request 測試 (${provider.name}) ===\n`);
 
-// SKIP 如果 provider 不支援 approval mode flag
-if (!provider.capabilities.approvalModeFlag) {
-  console.log(`⏭️  ${provider.name} 不支援 --approval-mode flag，跳過此測試\n`);
+const hasApprovalFlag = !!provider.capabilities.approvalModeFlag;
+const hasDefaultPermission = !!provider.capabilities.supportsDefaultPermission;
+
+if (!hasApprovalFlag && !hasDefaultPermission) {
+  console.log(`⏭️  ${provider.name} 不支援 permission 測試，跳過\n`);
   process.exit(77);
 }
 
-const client = createClient(provider, [
-  provider.capabilities.approvalModeFlag, "default",  // 使用預設模式，需要請求權限
-]);
+// 建立 client：有 approvalModeFlag 就用 CLI args，否則直接建立（Claude 預設 default mode）
+const extraArgs = hasApprovalFlag
+  ? [provider.capabilities.approvalModeFlag, "default"]
+  : [];
+
+const client = createClient(provider, extraArgs);
 
 try {
   await client.start();
-  console.log("✅ Client 啟動成功 (approval-mode: default)\n");
+  const modeDesc = hasApprovalFlag ? "approval-mode: default (CLI flag)" : "default mode (built-in)";
+  console.log(`✅ Client 啟動成功 (${modeDesc})\n`);
 
   const session = await client.createSession({
     workingDirectory: process.cwd(),
@@ -42,8 +50,7 @@ try {
       console.log("   Kind:", event.data?.kind);
       permissionRequests.push(event.data);
 
-      // 自動批准（在實際應用中可以讓使用者選擇）
-      // 這裡我們回傳同意
+      // 自動批准
       return { result: { optionId: "allow" } };
     } else if (event.type === "tool.execution_start") {
       console.log("   🔧 Tool 開始:", event.data.toolName);

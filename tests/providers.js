@@ -11,6 +11,10 @@ export const providers = {
     capabilities: {
       modelFlag: "--model",
       approvalModeFlag: "--approval-mode",
+      validModel: "gemini-3-flash-preview",
+      invalidModel: "invalid-model-12345",
+      supportsSessionModel: false,
+      supportsDefaultPermission: false,
     },
   },
   claude: {
@@ -20,6 +24,10 @@ export const providers = {
     capabilities: {
       modelFlag: null,
       approvalModeFlag: null,
+      validModel: "claude-sonnet-4-5-20250929",
+      invalidModel: "invalid-model-12345",
+      supportsSessionModel: true,
+      supportsDefaultPermission: true,
     },
   },
 };
