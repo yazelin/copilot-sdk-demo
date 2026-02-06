@@ -414,6 +414,26 @@ for f in test-step*.js; do echo "=== $f ===" && node "$f" && echo; done
 | `test-step15-destroy.js` | Session Destroy | 明確銷毀 session |
 | `test-step16-typed-events.js` | Typed Events | `on("event.type", handler)` 語法 |
 
+### Claude Code ACP 測試
+
+除了 Gemini CLI，SDK 也通過了 [Claude Code ACP](https://pypi.org/project/claude-code-acp/) 的整合測試：
+
+| 測試檔案 | 功能 | 說明 |
+|----------|------|------|
+| `test-claude-acp.js` | Claude ACP 整合 | 連線、sendAndWait、多輪對話 |
+
+> 需要先安裝：`pip install claude-code-acp`，並完成 Claude 登入 (`claude /login`)
+
+**Gemini vs Claude ACP 行為差異：**
+
+| 行為 | Gemini CLI | Claude Code ACP |
+|------|-----------|-----------------|
+| `assistant.message_delta` | ✅ | ✅ |
+| `assistant.message` (完整訊息) | ❌ SDK 合成 | ✅ 原生發送 |
+| `session.idle` | ❌ SDK 合成 | ✅ 原生發送 |
+| `session.abort` | ❌ 不支援 | 未測試 |
+| `permission.request` | ❌ 自動批准 | 未測試 |
+
 ### 測試結果
 
 所有測試皆已通過 ✅ (部分功能 Gemini CLI 不支援，但 SDK 正確處理)
